@@ -3,11 +3,13 @@ import asyncio
 import json
 import threading
 import time
+import random
 
 import aiohttp
 
 
 class BuildContent(threading.Thread):
+    title = ''
 
     _max_per_folder = 10
 
@@ -17,7 +19,9 @@ class BuildContent(threading.Thread):
         self._password = password
         self._number = number
         self._created = 0
+        self._updated = 0
         self._loaded = 0
+        self._retries = 0
         self._dive = False
         super().__init__(target=self)
 
@@ -27,6 +31,25 @@ class BuildContent(threading.Thread):
 
     async def _run(self):
         await self.crawl_folder(self._url)
+
+    async def update(self, url):
+        # print(f'{self._loaded} updating {url}')
+        async with aiohttp.ClientSession(loop=self._loop) as session:
+            resp = await session.patch(
+                url, auth=aiohttp.BasicAuth(self._username, self._password),
+                data=json.dumps({
+                    "title": "Folder updated"}))
+            if resp.status == 409:
+                # conflict error
+                # await asyncio.sleep(0.1)
+                self._retries += 1
+                return await self.update(url)
+            if resp.status != 204:
+                print(f'Bad status {resp.status}')
+            assert resp.status == 204
+            await resp.release()
+        self._updated += 1
+        self._loaded += 1
 
     async def write(self, url):
         # print(f'{self._loaded} writing to {url}')
@@ -66,7 +89,7 @@ class BuildContent(threading.Thread):
             return
 
         if self._max_per_folder > data['length']:
-            await self.write(self._url)
+            await self.write(url)
             if self._loaded > self._number:
                 self._dive = True
                 return
@@ -77,13 +100,15 @@ class BuildContent(threading.Thread):
 
 
 class WriteLoadTest(BuildContent):
+    title = 'Writes'
 
     async def _run(self):
         while self._number > self._loaded:
             await self.write(self._url)
 
 
-class ReadLoadTest(BuildContent):
+class CrawlLoadTest(BuildContent):
+    title = 'Crawl'
 
     async def _run(self):
         while self._number > self._loaded:
@@ -102,6 +127,56 @@ class ReadLoadTest(BuildContent):
             await self.crawl_folder(item['@id'])
 
 
+class CrawlAndUpdateLoadTest(BuildContent):
+    title = 'Crawl and update'
+
+    async def _run(self):
+        while self._number > self._loaded:
+            await self.crawl_folder(self._url)
+
+    async def crawl_folder(self, url):
+        if self._dive:
+            return
+
+        data = await self.read(url)
+        if self._loaded > self._number:
+            self._dive = True
+            return
+
+        items = data['items']
+        random.shuffle(items)
+        for item in items:
+            await self.update(item['@id'])
+            await self.crawl_folder(item['@id'])
+
+
+class ContentiousUpdateLoadTest(BuildContent):
+    title = 'Contentious update'
+
+    async def _run(self):
+        while self._number > self._loaded:
+            await self.crawl_folder(self._url)
+
+    async def crawl_folder(self, url):
+        if self._dive:
+            return
+
+        data = await self.read(self._url)
+        url = data['items'][0]['@id']
+        while self._number > self._loaded:
+            await self.update(url)
+
+
+class ReadLoadTest(BuildContent):
+    title = 'Read'
+
+    async def _run(self):
+        data = await self.read(self._url)
+        url = data['items'][0]['@id']
+        while self._number > self._loaded:
+            await self.read(url)
+
+
 class LoadTester:
 
     def __init__(self, thread_class, arguments):
@@ -110,13 +185,16 @@ class LoadTester:
         self._end = 0
         self._total_reqs = 0
         self._total_writes = 0
+        self._total_updates = 0
+        self._total_retries = 0
         self._threads = []
         self._arguments = arguments
 
     def __call__(self):
         self._start = time.time()
 
-        print(f'starting up {self._arguments.concurrency} threads')
+        print(f'starting up {self._arguments.concurrency} threads for '
+              f'{self._thread_class.title} test')
 
         for i in range(self._arguments.concurrency):
             thread = self._thread_class(
@@ -131,16 +209,31 @@ class LoadTester:
             thread.join()
             self._total_reqs += thread._loaded
             self._total_writes += thread._created
+            self._total_updates += thread._updated
+            self._total_retries += thread._retries
 
         self._end = time.time()
 
     def stats(self):
+        print('\n\n')
+        title = f'Test results for: {self._thread_class.title}'
+        print(title)
+        print('=' * len(title))
         print(f'Total requests: {self._total_reqs}')
-        print(f'Total writes: {self._total_writes}')
+        if self._total_writes > 0:
+            print(f'Total writes: {self._total_writes}')
+        if self._total_updates > 0:
+            print(f'Total updates: {self._total_updates}')
+        if self._total_retries > 0:
+            print(f'Total retries: {self._total_retries}')
         print(f'Seconds: {self._end - self._start}')
         print(f'Per sec: {self._total_reqs / (self._end - self._start)}')
         if self._total_writes > 0:
             print(f'Writes per sec: {self._total_writes / (self._end - self._start)}')
+        if self._total_updates > 0:
+            print(f'Updates per sec: {self._total_updates / (self._end - self._start)}')
+        if self._total_retries > 0:
+            print(f'Retries per sec: {self._total_retries / (self._end - self._start)}')
 
 
 async def setup_container(arguments, loop):
@@ -188,8 +281,24 @@ if __name__ == '__main__':
     tester = LoadTester(BuildContent, arguments)
     tester()
 
-    print('\n\nTesting reads')
-    print('=============')
+    print('\n\n')
+    print('Testing crawling')
+    print('================')
+    tester = LoadTester(CrawlLoadTest, arguments)
+    tester()
+    tester.stats()
+
+    print('\n\n')
+    print('Test reading same content')
+    print('=========================')
     tester = LoadTester(ReadLoadTest, arguments)
+    tester()
+    tester.stats()
+
+    tester = LoadTester(CrawlAndUpdateLoadTest, arguments)
+    tester()
+    tester.stats()
+
+    tester = LoadTester(ContentiousUpdateLoadTest, arguments)
     tester()
     tester.stats()

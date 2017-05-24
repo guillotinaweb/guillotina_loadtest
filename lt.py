@@ -234,6 +234,7 @@ class LoadTester:
             print(f'Updates per sec: {self._total_updates / (self._end - self._start)}')
         if self._total_retries > 0:
             print(f'Retries per sec: {self._total_retries / (self._end - self._start)}')
+        print('\n\n')
 
 
 async def setup_container(arguments, loop):
@@ -267,8 +268,6 @@ if __name__ == '__main__':
     work_loop = asyncio.new_event_loop()
     work_loop.run_until_complete(setup_container(arguments, work_loop))
 
-    print('Testing writes')
-    print('==============')
     tester = LoadTester(WriteLoadTest, arguments)
     tester()
     tester.stats()
@@ -281,16 +280,10 @@ if __name__ == '__main__':
     tester = LoadTester(BuildContent, arguments)
     tester()
 
-    print('\n\n')
-    print('Testing crawling')
-    print('================')
     tester = LoadTester(CrawlLoadTest, arguments)
     tester()
     tester.stats()
 
-    print('\n\n')
-    print('Test reading same content')
-    print('=========================')
     tester = LoadTester(ReadLoadTest, arguments)
     tester()
     tester.stats()
@@ -299,6 +292,8 @@ if __name__ == '__main__':
     tester()
     tester.stats()
 
+    arguments.concurrency = 5
+    arguments.number = 20
     tester = LoadTester(ContentiousUpdateLoadTest, arguments)
     tester()
     tester.stats()

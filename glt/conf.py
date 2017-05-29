@@ -1,5 +1,4 @@
 BASE_CONF = {
-    "applications": ["guillotina_rediscache"],
     "databases": [],
     "host": "127.0.0.1",
     "port": 8080,
@@ -32,6 +31,8 @@ class Configuration:
     def __init__(self, db_conf, aspect=None):
         self.db_conf = db_conf
         self.conf = BASE_CONF.copy()
+        if db_conf.get('cache_strategy') == 'redis':
+            self.conf['applications'] = ["guillotina_rediscache"]
         self.conf['databases'].append({"db": self.db_conf})
         self.aspect = aspect
 

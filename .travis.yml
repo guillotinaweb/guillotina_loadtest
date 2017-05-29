@@ -12,29 +12,26 @@ addons:
 before_script:
   - psql -c 'create database guillotina;' -U postgres
 
-cache:
-  directories:
-    - eggs
 install:
   - python setup.py develop
   - sleep 10
 script:
-  - bin/glt --transaction-strategy=resolve --db-type=postgresql
-  - bin/glt --transaction-strategy=resolve --db-type=postgresql --cache
-  - bin/glt --transaction-strategy=simple --db-type=postgresql
-  - bin/glt --transaction-strategy=simple --db-type=postgresql --cache
-  - bin/glt --transaction-strategy=lock --db-type=postgresql
-  - bin/glt --transaction-strategy=lock --db-type=postgresql --cache
-  - bin/glt --transaction-strategy=none --db-type=postgresql
-  - bin/glt --transaction-strategy=none --db-type=postgresql --cache
-  - bin/glt --transaction-strategy=resolve --db-type=cockroach
-  - bin/glt --transaction-strategy=resolve --db-type=cockroach --cache
-  - bin/glt --transaction-strategy=simple --db-type=cockroach
-  - bin/glt --transaction-strategy=simple --db-type=cockroach --cache
-  - bin/glt --transaction-strategy=lock --db-type=cockroach
-  - bin/glt --transaction-strategy=lock --db-type=cockroach --cache
-  - bin/glt --transaction-strategy=none --db-type=cockroach
-  - bin/glt --transaction-strategy=none --db-type=cockroach --cache
+  - glt --transaction-strategy=resolve --db-type=postgresql
+  - glt --transaction-strategy=resolve --db-type=postgresql --cache
+  - glt --transaction-strategy=simple --db-type=postgresql
+  - glt --transaction-strategy=simple --db-type=postgresql --cache
+  - glt --transaction-strategy=lock --db-type=postgresql
+  - glt --transaction-strategy=lock --db-type=postgresql --cache
+  - glt --transaction-strategy=none --db-type=postgresql
+  - glt --transaction-strategy=none --db-type=postgresql --cache
+  - glt --transaction-strategy=resolve --db-type=cockroach
+  - glt --transaction-strategy=resolve --db-type=cockroach --cache
+  - glt --transaction-strategy=simple --db-type=cockroach
+  - glt --transaction-strategy=simple --db-type=cockroach --cache
+  - glt --transaction-strategy=lock --db-type=cockroach
+  - glt --transaction-strategy=lock --db-type=cockroach --cache
+  - glt --transaction-strategy=none --db-type=cockroach
+  - glt --transaction-strategy=none --db-type=cockroach --cache
 deploy:
   provider: pages
   skip_cleanup: true

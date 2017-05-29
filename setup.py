@@ -31,7 +31,8 @@ setup(
     install_requires=[
         'psutil',
         'guillotina[test]>=1.1.0a7',
-        'guillotina_rediscache>=1.0.4'
+        'guillotina_rediscache>=1.0.4',
+        'requests==2.16.5'
     ],
     entry_points={
         'console_scripts': [

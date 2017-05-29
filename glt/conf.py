@@ -20,6 +20,35 @@ BASE_CONF = {
         'port': 6379,
         'ttl': 3600,
         'memory_cache_size': 1000
+    },
+    "logging": {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "%(message)s"
+            }
+        },
+        "handlers": {
+          "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "default",
+            "filename": "g.log",
+            "maxBytes": 100024,
+            "backupCount": 3
+          }
+        },
+        "loggers": {
+            "guillotina": {
+                "level": "WARN",
+                "handlers": ["file"],
+                "propagate": 0
+            },
+            "guillotina.storage": {
+                "level": "WARN",
+                "handlers": ["file"],
+                "propagate": 0
+            }
+        }
     }
 }
 

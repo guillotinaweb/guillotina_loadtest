@@ -210,7 +210,7 @@ def run():
     }
     if not os.path.exists('output/results'):
         os.mkdir('output/results')
-    result_dir = os.path.exists('output/results', os.environ.get('TRAVIS_BUILD_NUMBER', '0'))
+    result_dir = os.path.join('output/results', os.environ.get('TRAVIS_BUILD_NUMBER', '0'))
     if not os.path.exists(result_dir):
         os.mkdir(result_dir)
 

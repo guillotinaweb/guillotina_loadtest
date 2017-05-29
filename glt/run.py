@@ -208,14 +208,17 @@ def run():
         'configuration': configuration.conf,
         'data': run_tests(configuration, arguments)
     }
-    if not os.path.exists('results'):
-        os.mkdir('results')
+    if not os.path.exists('output/results'):
+        os.mkdir('output/results')
+    result_dir = os.path.exists('output/results', os.environ.get('TRAVIS_BUILD_NUMBER', '0'))
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
 
     filename = '{}-{}-{}.json'.format(
         arguments.db_type, arguments.transaction_strategy,
         arguments.cache and 'cache' or 'nocache'
     )
-    fi = open(os.path.join('results', filename), 'w')
+    fi = open(os.path.join(result_dir, filename), 'w')
     fi.write(json.dumps(result, indent=4, sort_keys=True))
     fi.close()
 

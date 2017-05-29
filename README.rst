@@ -12,12 +12,12 @@ Installation
 Simple virtual and aiohttp installed is all you need::
 
     virtualenv .
-    ./bin/pip install aiohttp
+    ./bin/python setup.py develop
 
 
 Running
 -------
 
-Make sure you have a guillotina server on port 8080 and then::
+Then, just run::
 
-    ./bin/python lt.py
+    ./bin/glt

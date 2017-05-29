@@ -1,0 +1,44 @@
+# we want to make sure it is run on trusty where sudo is provided for postgres
+dist: trusty
+language: python
+python: 3.6-dev
+sudo: required
+
+services:
+  - postgresql
+# make sure we're on the latest version of postgresql
+addons:
+  postgresql: "9.6"
+before_script:
+  - psql -c 'create database guillotina;' -U postgres
+
+cache:
+  directories:
+    - eggs
+install:
+  - python setup.py develop
+  - sleep 10
+script:
+  - bin/glt --transaction-strategy=resolve --db-type=postgresql
+  - bin/glt --transaction-strategy=resolve --db-type=postgresql --cache
+  - bin/glt --transaction-strategy=simple --db-type=postgresql
+  - bin/glt --transaction-strategy=simple --db-type=postgresql --cache
+  - bin/glt --transaction-strategy=lock --db-type=postgresql
+  - bin/glt --transaction-strategy=lock --db-type=postgresql --cache
+  - bin/glt --transaction-strategy=none --db-type=postgresql
+  - bin/glt --transaction-strategy=none --db-type=postgresql --cache
+  - bin/glt --transaction-strategy=resolve --db-type=cockroach
+  - bin/glt --transaction-strategy=resolve --db-type=cockroach --cache
+  - bin/glt --transaction-strategy=simple --db-type=cockroach
+  - bin/glt --transaction-strategy=simple --db-type=cockroach --cache
+  - bin/glt --transaction-strategy=lock --db-type=cockroach
+  - bin/glt --transaction-strategy=lock --db-type=cockroach --cache
+  - bin/glt --transaction-strategy=none --db-type=cockroach
+  - bin/glt --transaction-strategy=none --db-type=cockroach --cache
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  on:
+    branch: master
+  local_dir: results

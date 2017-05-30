@@ -11,6 +11,7 @@ function formatResult(name){
 
 (function($){
   var filenames = [
+    'unknown-unknown-unknown.json',
     'cockroach-lock-cache.json',
     'cockroach-lock-nocache.json',
     'cockroach-none-cache.json',
@@ -21,28 +22,26 @@ function formatResult(name){
     'postgresql-resolve-nocache.json'
   ];
   var allResults = [];
-  var buildNumber = 8;
+  var buildNumber = 0;
   while(true){
     var buildResults = {};
-    var missing = false
     filenames.forEach(function(filename){
       $.ajax({
         url: 'results/' + buildNumber + '/' + filename,
         async: false
       }).done(function(result){
         buildResults[filename] = result;
-        missing = false;
       }).fail(function(){
-        missing = true;
       });
     });
-    if(missing){
+    if(Object.keys(buildResults).length > 0){
+      allResults.push({
+        buildNumber: buildNumber,
+        results: buildResults
+      });
+    }else if(buildNumber > 8){
       break;
     }
-    allResults.push({
-      buildNumber: buildNumber,
-      results: buildResults
-    });
     buildNumber += 1;
   }
 
@@ -90,7 +89,6 @@ function formatResult(name){
 
         var $chartContainer = $('<div class="chart" style="width: 100%; height: 300px;"/>');
         $div.append($chartContainer);
-        console.log(data);
         var chart = new google.charts.Bar($chartContainer[0]);
         chart.draw(google.visualization.arrayToDataTable(data), google.charts.Bar.convertOptions(options));
       });

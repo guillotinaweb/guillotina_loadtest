@@ -24,6 +24,7 @@ parser.add_argument('--number', default=50, type=int)
 parser.add_argument('--transaction-strategy', default='resolve')
 parser.add_argument('--db-type', default='postgresql')
 parser.add_argument('--cache', action='store_true')
+parser.add_argument('--skip-site-creation', action='store_true')
 
 
 class LoadTester:
@@ -132,9 +133,10 @@ def run_guillotina(settings):
 
 
 def run_tests(configuration, arguments):
-    g_process = Process(target=run_guillotina, args=(configuration.conf,))
-    g_process.start()
-    time.sleep(3)
+    if not arguments.skip_site_creation:
+        g_process = Process(target=run_guillotina, args=(configuration.conf,))
+        g_process.start()
+        time.sleep(5)
 
     stats = {}
 
@@ -184,10 +186,11 @@ def run_tests(configuration, arguments):
     except:
         logger.error('Error running test:', exc_info=True)
 
-    g_process.terminate()
-    while not g_process.is_alive():
-        time.sleep(0.5)
-    time.sleep(3)
+    if not arguments.skip_site_creation:
+        g_process.terminate()
+        while not g_process.is_alive():
+            time.sleep(0.5)
+        time.sleep(5)
 
     return stats
 
@@ -195,14 +198,25 @@ def run_tests(configuration, arguments):
 def run():
     arguments = parser.parse_known_args()[0]
 
-    env = Environment(arguments)
-    env.setup()
-
-    configuration = conf.get_configuration(
-        arguments.db_type,
-        arguments.transaction_strategy,
-        arguments.cache
-    )
+    if not arguments.skip_site_creation:
+        env = Environment(arguments)
+        env.setup()
+        configuration = conf.get_configuration(
+            arguments.db_type,
+            arguments.transaction_strategy,
+            arguments.cache
+        )
+        filename = '{}-{}-{}.json'.format(
+            arguments.db_type, arguments.transaction_strategy,
+            arguments.cache and 'cache' or 'nocache'
+        )
+    else:
+        configuration = conf.get_configuration(
+            'unknown',
+            'unknown',
+            'unknown'
+        )
+        filename = 'unknown-unknown-unknown.json'
 
     result = {
         'configuration': configuration.conf,
@@ -210,16 +224,14 @@ def run():
     }
     if not os.path.exists('output/results'):
         os.mkdir('output/results')
-    result_dir = os.path.join('output/results', os.environ.get('TRAVIS_BUILD_NUMBER', '8'))
+    result_dir = os.path.join(
+        'output/results', os.environ.get('TRAVIS_BUILD_NUMBER', '0'))
     if not os.path.exists(result_dir):
         os.mkdir(result_dir)
 
-    filename = '{}-{}-{}.json'.format(
-        arguments.db_type, arguments.transaction_strategy,
-        arguments.cache and 'cache' or 'nocache'
-    )
     fi = open(os.path.join(result_dir, filename), 'w')
     fi.write(json.dumps(result, indent=4, sort_keys=True))
     fi.close()
 
-    env.teardown()
+    if not arguments.skip_site_creation:
+        env.teardown()

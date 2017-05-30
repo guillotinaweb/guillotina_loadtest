@@ -24,3 +24,8 @@ Running
 Then, just run::
 
     ./bin/glt
+
+
+Run without creating site inline::
+
+  ./bin/glt --skip-site-creation

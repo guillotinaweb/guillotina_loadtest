@@ -11,7 +11,6 @@ function formatResult(name){
 
 (function($){
   var filenames = [
-    'unknown-unknown-unknown.json',
     'cockroach-lock-cache.json',
     'cockroach-lock-nocache.json',
     'cockroach-none-cache.json',
@@ -45,6 +44,11 @@ function formatResult(name){
   google.charts.load('current', {'packages':['corechart', 'bar']});
   // Set a callback to run when the Google Visualization API is loaded.
   google.charts.setOnLoadCallback(drawCharts);
+
+  allResults.push({
+    buildNumber: buildNumber,
+    results: buildResults
+  });
 
   allResults.reverse();
 

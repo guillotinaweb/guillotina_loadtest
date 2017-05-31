@@ -23,27 +23,24 @@ function formatResult(name){
   ];
   var allResults = [];
   var buildNumber = 0;
-  while(true){
-    var buildResults = {};
-    filenames.forEach(function(filename){
-      $.ajax({
-        url: 'results/' + buildNumber + '/' + filename,
+  var travis_url = 'https://api.travis-ci.org/repos/guillotinaweb/guillotina_loadtest/branches';
+  $.ajax({
+        url: travis_url,
         async: false
       }).done(function(result){
-        buildResults[filename] = result;
+        buildNumber = result.branches[0].number;
       }).fail(function(){
       });
+  var buildResults = {};
+  filenames.forEach(function(filename){
+    $.ajax({
+      url: 'results/' + buildNumber + '/' + filename,
+      async: false
+    }).done(function(result){
+      buildResults[filename] = result;
+    }).fail(function(){
     });
-    if(Object.keys(buildResults).length > 0){
-      allResults.push({
-        buildNumber: buildNumber,
-        results: buildResults
-      });
-    }else if(buildNumber > 8){
-      break;
-    }
-    buildNumber += 1;
-  }
+  });
 
   google.charts.load('current', {'packages':['corechart', 'bar']});
   // Set a callback to run when the Google Visualization API is loaded.

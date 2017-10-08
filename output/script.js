@@ -11,44 +11,41 @@ function formatResult(name){
 
 (function($){
   var filenames = [
-    'cockroach-lock-cache.json',
-    'cockroach-lock-nocache.json',
+    'unknown-unknown-unknown.json',
     'cockroach-none-cache.json',
     'cockroach-none-nocache.json',
-    'postgresql-lock-cache.json',
-    'postgresql-lock-nocache.json',
+    'cockroach-resolve-cache.json',
+    'cockroach-resolve-nocache.json',
     'postgresql-resolve-cache.json',
     'postgresql-resolve-nocache.json'
   ];
   var allResults = [];
   var buildNumber = 0;
-  var travis_url = 'https://api.travis-ci.org/repos/guillotinaweb/guillotina_loadtest/branches';
-  $.ajax({
-        url: travis_url,
+  while(true){
+    var buildResults = {};
+    filenames.forEach(function(filename){
+      $.ajax({
+        url: 'results/' + buildNumber + '/' + filename,
         async: false
       }).done(function(result){
-        buildNumber = result.branches[0].number;
+        buildResults[filename] = result;
       }).fail(function(){
       });
-  var buildResults = {};
-  filenames.forEach(function(filename){
-    $.ajax({
-      url: 'results/' + buildNumber + '/' + filename,
-      async: false
-    }).done(function(result){
-      buildResults[filename] = result;
-    }).fail(function(){
     });
-  });
+    if(Object.keys(buildResults).length > 0){
+      allResults.push({
+        buildNumber: buildNumber,
+        results: buildResults
+      });
+    }else if(buildNumber > 8){
+      break;
+    }
+    buildNumber += 1;
+  }
 
   google.charts.load('current', {'packages':['corechart', 'bar']});
   // Set a callback to run when the Google Visualization API is loaded.
   google.charts.setOnLoadCallback(drawCharts);
-
-  allResults.push({
-    buildNumber: buildNumber,
-    results: buildResults
-  });
 
   allResults.reverse();
 

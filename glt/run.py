@@ -4,7 +4,6 @@ from glt import fixtures
 from glt import utils
 from guillotina.factory import make_app
 from guillotina.tests.docker_containers import cockroach_image
-from guillotina.tests.docker_containers import etcd_image
 from guillotina.tests.docker_containers import postgres_image
 from guillotina_rediscache.tests.docker_redis import redis_image
 from multiprocessing import Process
@@ -107,8 +106,6 @@ class Environment:
             cockroach_image.run()
         if self.arguments.cache:
             redis_image.run()
-        if self.arguments.transaction_strategy == 'lock':
-            etcd_image.run()
         if not self.is_travis:
             self.host = postgres_image.run()
 
@@ -117,8 +114,6 @@ class Environment:
             cockroach_image.stop()
         if self.arguments.cache:
             redis_image.stop()
-        if self.arguments.transaction_strategy == 'lock':
-            etcd_image.stop()
         if not self.is_travis:
             postgres_image.stop()
 

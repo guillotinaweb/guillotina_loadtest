@@ -90,11 +90,7 @@ PostgresqlConfiguration = {
 CockroachConfiguration = {
     "storage": "cockroach",
     "isolation_level": "snapshot",
-    "dsn": "postgresql://root@127.0.0.1:26257/guillotina?sslmode=disable",
-    "etcd": {
-        "host": "127.0.0.1",
-        "port": 2379
-    }
+    "dsn": "postgresql://root@127.0.0.1:26257/guillotina?sslmode=disable"
 }
 
 

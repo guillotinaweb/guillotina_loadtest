@@ -18,16 +18,12 @@ install:
 script:
   - glt --transaction-strategy=resolve --db-type=postgresql
   - glt --transaction-strategy=resolve --db-type=postgresql --cache
-  - glt --transaction-strategy=simple --db-type=postgresql
-  - glt --transaction-strategy=simple --db-type=postgresql --cache
   - glt --transaction-strategy=none --db-type=postgresql
   - glt --transaction-strategy=none --db-type=postgresql --cache
   - glt --transaction-strategy=none --db-type=cockroach
   - glt --transaction-strategy=none --db-type=cockroach --cache
   - glt --transaction-strategy=resolve --db-type=cockroach
   - glt --transaction-strategy=resolve --db-type=cockroach --cache
-  - glt --transaction-strategy=simple --db-type=cockroach
-  - glt --transaction-strategy=simple --db-type=cockroach --cache
 deploy:
   provider: pages
   skip_cleanup: true

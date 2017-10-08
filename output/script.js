@@ -16,12 +16,8 @@ function formatResult(name){
     'cockroach-none-nocache.json',
     'cockroach-resolve-cache.json',
     'cockroach-resolve-nocache.json',
-    'cockroach-simple-cache.json',
-    'cockroach-simple-nocache.json',
     'postgresql-resolve-cache.json',
     'postgresql-resolve-nocache.json',
-    'postgresql-simple-cache.json',
-    'postgresql-simple-nocache.json',
     'postgresql-none-cache.json',
     'postgresql-none-nocache.json'
   ];

@@ -1,0 +1,121 @@
+{
+    "configuration": {
+        "applications": [
+            "guillotina_rediscache"
+        ],
+        "cors": {
+            "allow_credentials": true,
+            "allow_headers": [
+                "*"
+            ],
+            "allow_methods": [
+                "GET",
+                "POST",
+                "DELETE",
+                "HEAD",
+                "PATCH"
+            ],
+            "allow_origin": [
+                "*"
+            ],
+            "expose_headers": [
+                "*"
+            ],
+            "max_age": 3660
+        },
+        "databases": [
+            {
+                "db": {
+                    "cache_strategy": "redis",
+                    "dsn": "postgresql://root@127.0.0.1:26257/guillotina?sslmode=disable",
+                    "isolation_level": "snapshot",
+                    "storage": "cockroach",
+                    "transaction_strategy": "none"
+                }
+            }
+        ],
+        "host": "127.0.0.1",
+        "logging": {
+            "formatters": {
+                "default": {
+                    "format": "%(message)s"
+                }
+            },
+            "handlers": {
+                "file": {
+                    "backupCount": 3,
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "filename": "g.log",
+                    "formatter": "default",
+                    "maxBytes": 100024
+                }
+            },
+            "loggers": {
+                "guillotina": {
+                    "handlers": [
+                        "file"
+                    ],
+                    "level": "WARN",
+                    "propagate": 0
+                },
+                "guillotina.storage": {
+                    "handlers": [
+                        "file"
+                    ],
+                    "level": "WARN",
+                    "propagate": 0
+                }
+            },
+            "version": 1
+        },
+        "port": 8080,
+        "redis": {
+            "host": "localhost",
+            "memory_cache_size": 1000,
+            "port": 6379,
+            "ttl": 3600
+        },
+        "root_user": {
+            "password": "root"
+        },
+        "static": [],
+        "utilities": []
+    },
+    "data": {
+        "contentious-update": {
+            "duration": 1.0337536334991455,
+            "requests": 100,
+            "retries": 0,
+            "updates": 95,
+            "writes": 0
+        },
+        "crawl": {
+            "duration": 11.201931715011597,
+            "requests": 1020,
+            "retries": 0,
+            "updates": 0,
+            "writes": 0
+        },
+        "crawl-and-update": {
+            "duration": 13.614885091781616,
+            "requests": 1672,
+            "retries": 0,
+            "updates": 1152,
+            "writes": 0
+        },
+        "read": {
+            "duration": 8.311168670654297,
+            "requests": 1000,
+            "retries": 0,
+            "updates": 0,
+            "writes": 0
+        },
+        "writes": {
+            "duration": 21.369495630264282,
+            "requests": 1000,
+            "retries": 0,
+            "updates": 0,
+            "writes": 1000
+        }
+    }
+}

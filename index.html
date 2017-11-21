@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Guillotina load test results</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="styles.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="jumbotron">
+        <h1>Guillotina load test results</h1>
+      </div>
+    </div>
+    <div class="container">
+      <h2>About results</h2>
+      <ul>
+        <li>Results are generated from Travis CI job</li>
+        <li>So, not reproducible accurately since it's share infrastructure</li>
+        <li>Testing single process, single threaded</li>
+        <li>Postgresql, cockroach, redis, etcd all running inline during test</li>
+      </ul>
+    </div>
+
+    <div class="container">
+      <div class="results">
+
+      </div>
+    </div>
+
+    <script
+      src="https://code.jquery.com/jquery-2.2.4.min.js"
+      integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+      crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="script.js?v=2"></script>
+  </body>
+</html>

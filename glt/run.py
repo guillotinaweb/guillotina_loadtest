@@ -106,15 +106,17 @@ class Environment:
             self.connections['cockroach'] = cockroach_image.run()
         if self.arguments.cache:
             self.connections['redis'] = redis_image.run()
-        if not self.is_travis:
+        if not self.is_travis and self.arguments.db_type == 'postgresql':
             self.connections['postgresql'] = postgres_image.run()
+        else:
+            self.connections['postgresql'] = 'localhost', 5432
 
     def teardown(self):
         if self.arguments.db_type == 'cockroach':
             cockroach_image.stop()
         if self.arguments.cache:
             redis_image.stop()
-        if not self.is_travis:
+        if self.arguments.db_type == 'postgresql' and not self.is_travis:
             postgres_image.stop()
 
 
@@ -204,6 +206,7 @@ def run():
             arguments.transaction_strategy,
             arguments.cache
         )
+
         filename = '{}-{}-{}.json'.format(
             arguments.db_type, arguments.transaction_strategy,
             arguments.cache and 'cache' or 'nocache'

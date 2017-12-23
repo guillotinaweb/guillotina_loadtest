@@ -94,11 +94,17 @@ CockroachConfiguration = {
 }
 
 
-def get_configuration(db_type, transaction_strategy, cache=False):
+def get_configuration(env, db_type, transaction_strategy, cache=False):
     if db_type == 'cockroach':
         db_conf = CockroachConfiguration.copy()
+        db_conf['dsn'] = "postgresql://root@{}:{}/guillotina?sslmode=disable".format(  # noqa
+            env.connections['cockroach'][0],
+            env.connections['cockroach'][1]
+        )
     else:
         db_conf = PostgresqlConfiguration.copy()
+        db_conf['dsn']['host'] = env.connections['postgresql'][0]
+        db_conf['dsn']['port'] = env.connections['postgresql'][1]
     db_conf['transaction_strategy'] = transaction_strategy
     if cache:
         db_conf['cache_strategy'] = 'redis'

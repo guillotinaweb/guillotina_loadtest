@@ -1,7 +1,7 @@
-import json
+from glt import conf
 
 import aiohttp
-from glt import conf
+import json
 
 
 async def setup_container(arguments, loop):

@@ -1,9 +1,8 @@
+import aiohttp
 import asyncio
 import json
-import threading
 import random
-
-import aiohttp
+import threading
 
 
 class BuildContent(threading.Thread):

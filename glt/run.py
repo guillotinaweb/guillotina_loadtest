@@ -77,11 +77,11 @@ class LoadTester:
         print(f'Seconds: {self._end - self._start}')
         print(f'Per sec: {self._total_reqs / (self._end - self._start)}')
         if self._total_writes > 0:
-            print(f'Writes per sec: {self._total_writes / (self._end - self._start)}')
+            print(f'Writes per sec: {self._total_writes / (self._end - self._start)}')  # noqa
         if self._total_updates > 0:
-            print(f'Updates per sec: {self._total_updates / (self._end - self._start)}')
+            print(f'Updates per sec: {self._total_updates / (self._end - self._start)}')  # noqa
         if self._total_retries > 0:
-            print(f'Retries per sec: {self._total_retries / (self._end - self._start)}')
+            print(f'Retries per sec: {self._total_retries / (self._end - self._start)}')  # noqa
         print('\n\n')
 
     def dict_stats(self):
@@ -96,18 +96,18 @@ class LoadTester:
 
 class Environment:
     is_travis = 'TRAVIS' in os.environ
-    host = 'localhost'
 
     def __init__(self, arguments):
         self.arguments = arguments
+        self.connections = {}
 
     def setup(self):
         if self.arguments.db_type == 'cockroach':
-            cockroach_image.run()
+            self.connections['cockroach'] = cockroach_image.run()
         if self.arguments.cache:
-            redis_image.run()
+            self.connections['redis'] = redis_image.run()
         if not self.is_travis:
-            self.host = postgres_image.run()
+            self.connections['postgresql'] = postgres_image.run()
 
     def teardown(self):
         if self.arguments.db_type == 'cockroach':
@@ -137,15 +137,17 @@ def run_tests(configuration, arguments):
 
     try:
         work_loop = asyncio.new_event_loop()
-        work_loop.run_until_complete(utils.setup_container(arguments, work_loop))
+        work_loop.run_until_complete(
+            utils.setup_container(arguments, work_loop))
 
         tester = LoadTester(fixtures.WriteLoadTest, arguments)
         tester()
         tester.print_stats()
-        stats[fixtures.WriteLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()
+        stats[fixtures.WriteLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()  # noqa
 
         work_loop = asyncio.new_event_loop()
-        work_loop.run_until_complete(utils.setup_container(arguments, work_loop))
+        work_loop.run_until_complete(
+            utils.setup_container(arguments, work_loop))
 
         print('\n\npopulating site...')
         print('==================')
@@ -155,17 +157,17 @@ def run_tests(configuration, arguments):
         tester = LoadTester(fixtures.CrawlLoadTest, arguments)
         tester()
         tester.print_stats()
-        stats[fixtures.CrawlLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()
+        stats[fixtures.CrawlLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()  # noqa
 
         tester = LoadTester(fixtures.ReadLoadTest, arguments)
         tester()
         tester.print_stats()
-        stats[fixtures.ReadLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()
+        stats[fixtures.ReadLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()  # noqa
 
         tester = LoadTester(fixtures.CrawlAndUpdateLoadTest, arguments)
         tester()
         tester.print_stats()
-        stats[fixtures.CrawlAndUpdateLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()
+        stats[fixtures.CrawlAndUpdateLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()  # noqa
 
         original_concurrency = arguments.concurrency
         original_number = arguments.number
@@ -174,7 +176,7 @@ def run_tests(configuration, arguments):
         tester = LoadTester(fixtures.ContentiousUpdateLoadTest, arguments)
         tester()
         tester.print_stats()
-        stats[fixtures.ContentiousUpdateLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()
+        stats[fixtures.ContentiousUpdateLoadTest.title.replace(' ', '-').lower()] = tester.dict_stats()  # noqa
 
         arguments.concurrency = original_concurrency
         arguments.number = original_number
@@ -197,6 +199,7 @@ def run():
         env = Environment(arguments)
         env.setup()
         configuration = conf.get_configuration(
+            env,
             arguments.db_type,
             arguments.transaction_strategy,
             arguments.cache
@@ -207,6 +210,7 @@ def run():
         )
     else:
         configuration = conf.get_configuration(
+            env,
             'unknown',
             'unknown',
             'unknown'

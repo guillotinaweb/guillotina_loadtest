@@ -13,6 +13,7 @@ import asyncio
 import json
 import logging
 import os
+import requests
 import time
 
 
@@ -102,22 +103,27 @@ class Environment:
         self.connections = {}
 
     def setup(self):
-        if self.arguments.db_type == 'cockroach':
-            self.connections['cockroach'] = cockroach_image.run()
-        if self.arguments.cache:
-            self.connections['redis'] = redis_image.run()
-        if not self.is_travis and self.arguments.db_type == 'postgresql':
-            self.connections['postgresql'] = postgres_image.run()
-        else:
+        if self.arguments.skip_site_creation:
+            self.connections['cockroach'] = 'localhost', 26257
             self.connections['postgresql'] = 'localhost', 5432
+        else:
+            if self.arguments.db_type == 'cockroach':
+                self.connections['cockroach'] = cockroach_image.run()
+            if self.arguments.cache:
+                self.connections['redis'] = redis_image.run()
+            if not self.is_travis and self.arguments.db_type == 'postgresql':
+                self.connections['postgresql'] = postgres_image.run()
+            else:
+                self.connections['postgresql'] = 'localhost', 5432
 
     def teardown(self):
-        if self.arguments.db_type == 'cockroach':
-            cockroach_image.stop()
-        if self.arguments.cache:
-            redis_image.stop()
-        if self.arguments.db_type == 'postgresql' and not self.is_travis:
-            postgres_image.stop()
+        if not self.arguments.skip_site_creation:
+            if self.arguments.db_type == 'cockroach':
+                cockroach_image.stop()
+            if self.arguments.cache:
+                redis_image.stop()
+            if self.arguments.db_type == 'postgresql' and not self.is_travis:
+                postgres_image.stop()
 
 
 def run_guillotina(settings):
@@ -129,11 +135,26 @@ def run_guillotina(settings):
                 loop=web_loop)
 
 
+def check_live(timeout=30):
+    start = time.time()
+    current = time.time()
+    while (current - start) < 30:
+        try:
+            resp = requests.get('http://localhost:8080')
+            if resp.status_code == 200:
+                return
+        except:
+            pass
+        time.sleep(1)
+        current = time.time()
+    raise Exception(f'Timed out waiting to start server for {timeout} seconds')
+
+
 def run_tests(configuration, arguments):
     if not arguments.skip_site_creation:
         g_process = Process(target=run_guillotina, args=(configuration.conf,))
         g_process.start()
-        time.sleep(5)
+        check_live()
 
     stats = {}
 
@@ -197,23 +218,23 @@ def run_tests(configuration, arguments):
 def run():
     arguments = parser.parse_known_args()[0]
 
-    if not arguments.skip_site_creation:
-        env = Environment(arguments)
-        env.setup()
-        configuration = conf.get_configuration(
-            env,
-            arguments.db_type,
-            arguments.transaction_strategy,
-            arguments.cache
-        )
+    env = Environment(arguments)
+    env.setup()
+    configuration = conf.get_configuration(
+        env,
+        arguments.db_type,
+        arguments.transaction_strategy,
+        arguments.cache
+    )
 
+    if not arguments.skip_site_creation:
         filename = '{}-{}-{}.json'.format(
             arguments.db_type, arguments.transaction_strategy,
             arguments.cache and 'cache' or 'nocache'
         )
     else:
         configuration = conf.get_configuration(
-            env,
+            None,
             'unknown',
             'unknown',
             'unknown'
